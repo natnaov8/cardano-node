@@ -25,10 +25,13 @@ import           Cardano.Config.Shelley.KES
 import           Cardano.Config.Shelley.VRF
                    (genVRFKeyPair, writeVRFSigningKey, writeVRFVerKey)
 import           Cardano.Config.Types (SigningKeyFile(..))
+import           Cardano.CLI.Shelley.Run.Genesis (runGenesisCreate)
+
 
 runShelleyClientCommand :: ShelleyCommand -> ExceptT CliError IO ()
 runShelleyClientCommand cc =
   case cc of
+    ShelleyCreateGenesis genSyr mstart amount -> runGenesisCreate genSyr mstart amount
     ShelleyKeyGenerate fpath -> runShelleyKeyGenerate fpath
     ShelleyKESKeyPairGenerate vKeyPath sKeyPath duration -> runShelleyKESKeyPairGeneration vKeyPath sKeyPath duration
     ShelleyVRFKeyPairGenerate vKeyPath sKeyPath -> runShelleyVRFKeyPairGeneration vKeyPath sKeyPath

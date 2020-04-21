@@ -15,7 +15,7 @@ import           Cardano.Config.Types (NodeAddress, SigningKeyFile(..))
 import           Cardano.Slotting.Slot (EpochNo (..))
 
 import           Data.Time.Clock (UTCTime)
-import           Data.Time.Clock.POSIX (posixSecondsToUTCTime)
+import           Data.Time.Format (defaultTimeLocale, iso8601DateFormat, parseTimeOrError)
 
 import           Options.Applicative (Parser)
 import qualified Options.Applicative as Opt
@@ -180,14 +180,15 @@ parseShelleyCommands =
     pMaybeSystemStart =
       Opt.optional $
         SystemStart . convertTime <$>
-          Opt.option Opt.auto
+          Opt.strOption
             (  Opt.long "start-time"
-            <> Opt.metavar "EPOCH_SECS"
-            <> Opt.help "The genesis start time in POSIX seconds. If unspecified, will be the current time +30 seconds."
+            <> Opt.metavar "UTC_TIME"
+            <> Opt.help "The genesis start time in YYYY-MM-DDThh:mm:ssZ format. If unspecified, will be the current time +30 seconds."
             )
 
-    convertTime :: Integer -> UTCTime
-    convertTime = posixSecondsToUTCTime . realToFrac
+    convertTime :: String -> UTCTime
+    convertTime =
+      parseTimeOrError False defaultTimeLocale (iso8601DateFormat $ Just "%H:%M:%SZ")
 
     pInitialSupply :: Parser Lovelace
     pInitialSupply =
