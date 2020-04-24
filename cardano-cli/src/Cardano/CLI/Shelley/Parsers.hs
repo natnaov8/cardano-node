@@ -124,21 +124,11 @@ parseShelleyCommands =
           $ Opt.progDesc "Create a Shelley genesis file from a genesis template and genesis/delegation/spending keys."
           )
       , Opt.command "key-gen"
-          (Opt.info pKeyGen
-          $ Opt.progDesc "Generate Shelley era crypto keys."
-          )
-      , Opt.command "KES-key-gen"
-          (Opt.info pKESKeyGen
-          $ Opt.progDesc "Generate Shelley era KES keys."
-          )
-      , Opt.command "VRF-key-gen"
-          (Opt.info pVRFKeyGen
-          $ Opt.progDesc "Generate Shelley era VRF keys."
-          )
-      , Opt.command "pool"
-          (Opt.info (ShelleyPool <$> pShelleyPoolCmd) $ Opt.progDesc "Shelley pool commands")
+          (Opt.info pShelleyKeyGen $ Opt.progDesc "Generate Shelley era crypto keys.")
       , Opt.command "stake-key"
           (Opt.info (ShelleyStakeKey <$> pStakeKey) $ Opt.progDesc "Shelley stake key commands")
+      , Opt.command "pool"
+          (Opt.info (ShelleyPool <$> pShelleyPoolCmd) $ Opt.progDesc "Shelley pool commands")
       , Opt.command "transaction"
           (Opt.info (ShelleyTransaction <$> pTransaction) $ Opt.progDesc "Shelley transaction commands")
       , Opt.command "node"
@@ -154,18 +144,6 @@ parseShelleyCommands =
     pGenesisCommand :: Parser ShelleyCommand
     pGenesisCommand =
       ShelleyCreateGenesis <$> pGenesisDir <*> pMaybeSystemStart <*> pInitialSupply
-
-    pKeyGen :: Parser ShelleyCommand
-    pKeyGen =
-      ShelleyKeyGenerate <$> pOutputFile
-
-    pKESKeyGen :: Parser ShelleyCommand
-    pKESKeyGen =
-      ShelleyKESKeyPairGenerate <$> pVerificationKeyFile <*> pSigningKeyFile <*> pDuration
-
-    pVRFKeyGen :: Parser ShelleyCommand
-    pVRFKeyGen =
-      ShelleyVRFKeyPairGenerate <$> pVerificationKeyFile <*> pSigningKeyFile
 
     pGenesisDir :: Parser GenesisDir
     pGenesisDir =
@@ -198,6 +176,37 @@ parseShelleyCommands =
           <> Opt.metavar "LOVELACE"
           <> Opt.help "The initial coin supply in Lovelace which will be evenly distributed across initial stake holders."
           )
+
+pShelleyKeyGen :: Parser ShelleyCommand
+pShelleyKeyGen =
+  Opt.subparser $
+    mconcat
+      [ Opt.command "tx"
+         (Opt.info pKeyGen
+         $ Opt.progDesc "Tx signing/verifaction key pair."
+         )
+      , Opt.command "kes"
+          (Opt.info pKESKeyGen
+          $ Opt.progDesc "KES (block signing) key."
+          )
+      , Opt.command "vrf"
+          (Opt.info pVRFKeyGen
+          $ Opt.progDesc "VRF (used to determine slot leader) key."
+          )
+      ]
+  where
+    pKeyGen :: Parser ShelleyCommand
+    pKeyGen =
+      ShelleyKeyGenerate <$> pOutputFile
+
+    pKESKeyGen :: Parser ShelleyCommand
+    pKESKeyGen =
+      ShelleyKESKeyPairGenerate <$> pVerificationKeyFile <*> pSigningKeyFile <*> pDuration
+
+    pVRFKeyGen :: Parser ShelleyCommand
+    pVRFKeyGen =
+      ShelleyVRFKeyPairGenerate <$> pVerificationKeyFile <*> pSigningKeyFile
+
 
 pShelleyPoolCmd :: Parser ShelleyPoolCmd
 pShelleyPoolCmd =
@@ -429,7 +438,6 @@ pOutputFile =
       <> Opt.metavar "FILE"
       <> Opt.help "The output file."
       )
-
 
 pPoolId :: Parser PoolId
 pPoolId =
